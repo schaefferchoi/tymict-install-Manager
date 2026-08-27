@@ -3383,6 +3383,7 @@ const DASHBOARD_REQUIRED_PHOTOS = [
     ["version", "F/W · S/W 버전"]
 ];
 let dashboardAttentionDetails = {};
+let dashboardSalesDetails = {};
 
 async function loadDashboard() {
     const now = new Date();
@@ -3532,6 +3533,9 @@ async function loadDashboard() {
         무료체험: 0,
         기타: 0
     };
+    const salesTypeDetails = Object.fromEntries(
+        Object.keys(salesTypeCount).map(type => [type, []])
+    );
 
     const regionCount = {};
     const productCount = {};
@@ -3549,8 +3553,10 @@ async function loadDashboard() {
             )
         ) {
             salesTypeCount[salesType] += 1;
+            salesTypeDetails[salesType].push(record);
         } else {
             salesTypeCount.기타 += 1;
+            salesTypeDetails.기타.push(record);
         }
 
         // 지역
@@ -3590,6 +3596,7 @@ async function loadDashboard() {
         attentionDetails,
         recentRecords,
         salesTypeCount,
+        salesTypeDetails,
         regionCount,
         productCount,
         manufacturerCount,
@@ -3732,6 +3739,7 @@ function updateDashboardUI({
     attentionDetails,
     recentRecords,
     salesTypeCount,
+    salesTypeDetails,
     regionCount,
     productCount,
     manufacturerCount,
@@ -3751,6 +3759,7 @@ function updateDashboardUI({
     setText("photoCompletionRate", photoCompletionRate);
     setText("confluenceConnectionRate", confluenceConnectionRate);
     dashboardAttentionDetails = attentionDetails || {};
+    dashboardSalesDetails = salesTypeDetails || {};
 
     const attentionTarget = document.getElementById("dashboardAttention");
     if (attentionTarget) {
@@ -3794,37 +3803,20 @@ function updateDashboardUI({
         document.getElementById("salesTypeSummary");
 
     if (salesSummary) {
-        salesSummary.innerHTML = `
-            <div>
-                <span>일반</span>
-                <strong>${salesTypeCount.일반}</strong>
-            </div>
+        salesSummary.innerHTML = Object.entries(salesTypeCount)
+            .map(([type, count]) => `
+                <button type="button" class="dashboard-sales-item" data-sales-type="${escapeHtml(type)}" aria-expanded="false">
+                    <span>${escapeHtml(type)}<small>상세보기</small></span>
+                    <strong>${count}</strong>
+                </button>
+            `).join("");
+    }
 
-            <div>
-                <span>보조</span>
-                <strong>${salesTypeCount.보조}</strong>
-            </div>
-
-            <div>
-                <span>B2B</span>
-                <strong>${salesTypeCount.B2B}</strong>
-            </div>
-
-            <div>
-                <span>이전장착</span>
-                <strong>${salesTypeCount.이전장착}</strong>
-            </div>
-
-            <div>
-                <span>무료체험</span>
-                <strong>${salesTypeCount.무료체험}</strong>
-            </div>
-
-            <div>
-                <span>기타</span>
-                <strong>${salesTypeCount.기타}</strong>
-            </div>
-        `;
+    const salesDetail = document.getElementById("salesTypeDetail");
+    if (salesDetail) {
+        salesDetail.classList.add("hidden");
+        salesDetail.innerHTML = "";
+        salesDetail.dataset.type = "";
     }
 
     renderDashboardRanking(
@@ -3990,6 +3982,63 @@ document.getElementById("dashboardAttentionDetail")?.addEventListener("click", e
     }
     const recordButton = event.target.closest("[data-attention-record-id]");
     if (recordButton) viewRecord(recordButton.dataset.attentionRecordId);
+});
+
+function showDashboardSalesDetail(type) {
+    const detail = document.getElementById("salesTypeDetail");
+    const buttons = document.querySelectorAll("[data-sales-type]");
+    if (!detail) return;
+
+    const selectedButton = [...buttons]
+        .find(button => button.dataset.salesType === type);
+    const isAlreadyOpen =
+        !detail.classList.contains("hidden") && detail.dataset.type === type;
+
+    buttons.forEach(button => button.setAttribute("aria-expanded", "false"));
+
+    if (isAlreadyOpen) {
+        detail.classList.add("hidden");
+        detail.innerHTML = "";
+        detail.dataset.type = "";
+        return;
+    }
+
+    const records = dashboardSalesDetails[type] || [];
+    selectedButton?.setAttribute("aria-expanded", "true");
+    detail.dataset.type = type;
+    detail.innerHTML = `
+        <div class="dashboard-sales-detail-heading">
+            <div><strong>${escapeHtml(type)}</strong><span>${records.length}건</span></div>
+            <button type="button" class="dashboard-sales-close" aria-label="판매구분 상세 닫기">×</button>
+        </div>
+        <div class="dashboard-sales-records">
+            ${records.length ? records.map(record => `
+                <button type="button" class="dashboard-sales-record" data-sales-record-id="${record.id}">
+                    <span class="dashboard-sales-record-date">${escapeHtml(record.install_date || "날짜 미입력")}</span>
+                    <span class="dashboard-sales-record-main">
+                        <strong>${escapeHtml(record.customer_name || "고객명 미입력")}</strong>
+                        <small>${escapeHtml([record.manufacturer, record.model_sn].filter(Boolean).join(" ") || record.product_name || "기종 미입력")}</small>
+                    </span>
+                    <span class="dashboard-sales-record-product">${escapeHtml(record.product_name || "제품 미입력")}</span>
+                </button>
+            `).join("") : '<p class="dashboard-sales-empty">해당 판매구분의 장착 기록이 없습니다.</p>'}
+        </div>`;
+    detail.classList.remove("hidden");
+}
+
+document.getElementById("salesTypeSummary")?.addEventListener("click", event => {
+    const button = event.target.closest("[data-sales-type]");
+    if (button) showDashboardSalesDetail(button.dataset.salesType);
+});
+
+document.getElementById("salesTypeDetail")?.addEventListener("click", event => {
+    if (event.target.closest(".dashboard-sales-close")) {
+        showDashboardSalesDetail(event.currentTarget.dataset.type);
+        return;
+    }
+
+    const recordButton = event.target.closest("[data-sales-record-id]");
+    if (recordButton) viewRecord(recordButton.dataset.salesRecordId);
 });
 
 function renderDashboardRanking(
