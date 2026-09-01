@@ -776,7 +776,11 @@ allRecords = (data || []).map(record => ({
         "",
 
     dealer_type_name:
-        dealerTypeNameMap[String(record.dealer_type_id || "")] ||
+        dealerTypeNameMap[String(
+            record.dealer_type_id ||
+            record.dealer?.dealer_type_id ||
+            ""
+        )] ||
         "",
 
     photoCount:
@@ -799,7 +803,7 @@ function renderRecords(records) {
     if (!records.length) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty">저장된 데이터가 없습니다.</td>
+                <td colspan="10" class="empty">저장된 데이터가 없습니다.</td>
             </tr>
         `;
         return;
@@ -830,6 +834,9 @@ function renderRecords(records) {
         return `
             <tr class="record-mobile-card">
                 <td data-label="장착일">${record.install_date || "-"}</td>
+                <td data-label="판매구분">${record.sales_type || "-"}</td>
+                <td data-label="거래처 유형">${record.dealer_type_name || "-"}</td>
+                <td data-label="거래처명">${record.dealer_name || "-"}</td>
                 <td data-label="고객">${record.customer_name || "-"}</td>
                 <td data-label="제품 / BOX">
                     ${record.product_name || "-"}<br>

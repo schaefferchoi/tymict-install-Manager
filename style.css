@@ -691,6 +691,10 @@ textarea {
     border-radius: 12px
 }
 
+#listTab .table-wrap table {
+    min-width: 1180px;
+}
+
 @media (max-width: 720px) {
     #listTab .table-wrap {
         overflow: visible;
@@ -751,13 +755,13 @@ textarea {
         letter-spacing: .04em;
     }
 
-    #recordsBody .record-mobile-card td:nth-child(3),
-    #recordsBody .record-mobile-card td:nth-child(7) {
+    #recordsBody .record-mobile-card td[data-label="제품 / BOX"],
+    #recordsBody .record-mobile-card td[data-label="관리"] {
         grid-column: 1 / -1;
         border-right: 0;
     }
 
-    #recordsBody .record-mobile-card td:nth-child(7) {
+    #recordsBody .record-mobile-card td[data-label="관리"] {
         border-bottom: 0;
     }
 
