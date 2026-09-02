@@ -2570,7 +2570,7 @@ function setDefaultVersions() {
     document.getElementById("ad_a1_software").value = "1.6.2.2";
     document.getElementById("coa_fw").value = "107";
     document.getElementById("ins_ver").value = "1.6.7";
-    document.getElementById("moa_fw").value = "1.71.0";
+    document.getElementById("moa_fw").value = "1.7.1.0";
     document.getElementById("cpg_fw").value = "1.0.3.0";
     document.getElementById("adc2").value = "1.4.1";
     document.getElementById("cpad_sw").value = "1.6.1.9";
