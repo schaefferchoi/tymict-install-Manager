@@ -696,10 +696,25 @@ textarea {
 }
 
 @media (max-width: 720px) {
+    #listTab,
+    #listTab .card,
+    #listTab .table-wrap,
+    #recordsBody,
+    #recordsBody .record-mobile-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
     #listTab .table-wrap {
         overflow: visible;
         border: 0;
         border-radius: 0;
+    }
+
+    #listTab .table-wrap table {
+        width: 100%;
+        min-width: 0;
     }
 
     #listTab table,
